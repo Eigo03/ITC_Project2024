@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopping Cart</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: Arial, sans-serif;
+            background: url('white.jpg') no-repeat center center fixed;
+            background-size: cover;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+        }
+
+        .cart-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #ccc;
+            padding: 10px 0;
+        }
+
+        .cart-item img {
+            width: 100px;
+            height: auto;
+            margin-right: 20px;
+        }
+
+        .cart-item-info {
+            flex-grow: 1;
+        }
+
+        .cart-item-info h3 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .cart-item-info p {
+            margin: 5px 0;
+            font-size: 14px;
+            color: #777;
+        }
+
+        .cart-total {
+            margin-top: 20px;
+            text-align: right;
+        }
+
+        .cart-buttons {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .cart-buttons button {
+            padding: 10px 20px;
+            margin: 0 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        .cart-buttons button:hover {
+            background-color: #555;
+        }
+
+        .nav-buttons {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+        }
+
+        .nav-buttons button {
+            padding: 10px;
+            background-color: #333;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-right: 10px;
+        }
+
+        .nav-buttons button:hover {
+            background-color: #555;
+        }
+
+        .registration-form {
+            display: none;
+            margin-bottom: 20px;
+        }
+
+        .registration-form input {
+            display: block;
+            width: calc(100% - 20px);
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="nav-buttons">
+            <button onclick="window.location.href='index.html'">Home</button>
+            <button onclick="window.location.href='products.html'">Products</button>
+        </div>
+        <h1>Shopping Cart</h1>
+
+        <div class="registration-form" id="registration-form">
+            <h2>Register</h2>
+            <input type="text" id="full-name" placeholder="Full Name">
+            <input type="email" id="email" placeholder="Email">
+            <input type="text" id="phone" placeholder="Phone Number">
+            <input type="text" id="address" placeholder="Address">
+            <button id="register">Register</button>
+        </div>
+
+        <div id="cart-items"></div>
+        <div class="cart-total" id="cart-total"></div>
+        <div class="cart-buttons">
+            <button id="compute-cart">Compute</button>
+            <button id="place-order">Place Order</button>
+        </div>
+    </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', function () {
+        var cartItems = JSON.parse(localStorage.getItem('cartItems')) || [];
+        var cartContainer = document.getElementById('cart-items');
+        var cartTotalContainer = document.getElementById('cart-total');
+        var isRegistered = false;
+
+        function displayCartItems() {
+            cartContainer.innerHTML = '';
+            var cartMap = new Map();
+            cartItems.forEach(function (item) {
+                if (cartMap.has(item.name)) {
+                    cartMap.set(item.name, cartMap.get(item.name) + 1);
+                } else {
+                    cartMap.set(item.name, 1);
+                }
+            });
+            cartMap.forEach(function (quantity, itemName) {
+                var item = cartItems.find(item => item.name === itemName);
+                var itemElement = document.createElement('div');
+                itemElement.classList.add('cart-item');
+                itemElement.innerHTML = `
+                    <div class="cart-item-info">
+                        <h3>${itemName} - Php${item.price}</h3>
+                        <p style="text-align: center;">Quantity: ${quantity}</p>
+                    </div>
+                `;
+                cartContainer.appendChild(itemElement);
+            });
+        }
+
+        document.getElementById('compute-cart').addEventListener('click', function () {
+            var totalPrice = cartItems.reduce((total, item) => total + parseInt(item.price), 0);
+            cartTotalContainer.textContent = 'Total: Php' + totalPrice.toFixed(2);
+        });
+
+        document.getElementById('register').addEventListener('click', function () {
+            var fullName = document.getElementById('full-name').value;
+            var email = document.getElementById('email').value;
+            var phone = document.getElementById('phone').value;
+            var address = document.getElementById('address').value;
+
+            if (fullName && email && phone && address) {
+                isRegistered = true;
+                document.getElementById('registration-form').style.display = 'none';
+                alert('Registration successful. You can now place your order.');
+            } else {
+                alert('Please fill in all the registration fields.');
+            }
+        });
+
+        document.getElementById('place-order').addEventListener('click', function () {
+            if (!isRegistered) {
+                alert('Please register first to continue your order.');
+                document.getElementById('registration-form').style.display = 'block';
+                return;
+            }
+
+            var receiptNumber = Math.random().toString(36).substr(2, 9);
+            var totalPrice = cartItems.reduce((total, item) => total + parseInt(item.price), 0);
+            var orderSummary = 'Your Receipt:\n' +
+                  'Total Items: ' + cartItems.length + '\n' +
+                  'Total Price: Php' + totalPrice.toFixed(2) + '\n' +
+                  'Receipt Number: ' + receiptNumber;
+
+            alert(orderSummary);
+            localStorage.removeItem('cartItems');
+            cartItems = [];
+            cartTotalContainer.textContent = '';
+            displayCartItems();
+        });
+
+        displayCartItems();
+    });
+    </script>
+</body>
+</html>
